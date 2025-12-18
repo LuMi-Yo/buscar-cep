@@ -8,6 +8,7 @@ export default function FormCep() {
     const [estado, setEstado] = useState('')
     const [cidade, setCidade] = useState('')
     const [erroCep, setErroCep] = useState('')
+    const [temFocus, setTemFocus] = useState(true)
 
     async function buscarCepApi(cep) {
         const resp = await fetch(`https://viacep.com.br/ws/${cep}/json/`)
@@ -31,7 +32,7 @@ export default function FormCep() {
                 setEstado(`${end.uf}`)
                 setCidade(`${end.localidade}`) 
             } else {
-                setErroCep('CEP não encontrado')
+                onBlurCep()
             }
             }
         }
@@ -40,10 +41,21 @@ export default function FormCep() {
 
     function handleClickCep () {
         setErroCep('')
+        setTemFocus(true)
     }
 
-    function handleClick() {
-        cep.length !== 8 ? setErroCep('CEP inválido') : setErroCep('')
+    function onBlurCep() {
+        const { end, status } = buscarCepApi(cep)
+        if (cep.length === 8 && end.erro === true) {
+            setErroCep('CEP inválido')
+            setTemFocus(false)
+        } else if (cep.length !== 8 ){
+            setErroCep('CEP inválido')
+            setTemFocus(false) 
+        } else {
+            setErroCep('')
+            setTemFocus(true)
+        }
     }
 
     return (
@@ -51,7 +63,7 @@ export default function FormCep() {
             <h1 className='flex justify-center font-extrabold text-[2rem] p-[5px]'>Buscar Cep</h1>
             <form className='flex justify-center flex-col mt-5'>
 
-                <input placeholder='CEP' className='border-gray-300 border-2 w-[450px] p-[5px]' maxLength={8} value={cep} onChange={handleChangeCep} onClick={handleClickCep} onBlur={handleClick}/>
+                <input placeholder='CEP' className={temFocus === false ? 'border-2 w-[450px] p-[5px] bg-red-200 border-red-500' : 'border-gray-300 border-2 w-[450px] p-[5px]'} maxLength={8} value={cep} onChange={handleChangeCep} onClick={handleClickCep} onBlur={onBlurCep}/>
                 
                 { erroCep && (
                     <div>
