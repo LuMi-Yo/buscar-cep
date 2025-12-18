@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import '../index.css'
 
 export default function FormCep() {
     const [cep, setCep] = useState('')
@@ -9,48 +10,61 @@ export default function FormCep() {
     const [erroCep, setErroCep] = useState('')
 
     async function buscarCepApi(cep) {
-        const resp = await fetch(`https://viacep.com.br/ws/|${cep}/json/`)
+        const resp = await fetch(`https://viacep.com.br/ws/${cep}/json/`)
         if (resp.status === 200) {
             const end  = await resp.json()
-            return end 
+            const status = await resp.status
+            return { end, status }
         }
     }
     async function handleChangeCep(event) {
         const cep = event.target.value
         setCep(cep)
-        const end = await buscarCepApi(cep)
-        console.lod(end)
-
+        
         if (cep.length === 8) {
-            setErroCep('')
-            if (end && !end.erro) {
-                setRua(end.logradouro)
-                setBairro('Bairro')
-                setEstado('Estado')
-                setCidade('Cidade') 
+            const { end, status } = await buscarCepApi(cep)
+            if (status === 200) {
+                if (end && !end.erro) {
+                setErroCep('')
+                setRua(`${end.logradouro}`)
+                setBairro(`${end.bairro}`)
+                setEstado(`${end.uf}`)
+                setCidade(`${end.localidade}`) 
+            } else {
+                setErroCep('CEP não encontrado')
             }
-        } else if (cep.length === 0) {
-            setErroCep('')
-        } else {
-            setErroCep('CEP inválido')
+            }
         }
 
     }
 
+    function handleClickCep () {
+        setErroCep('')
+    }
+
+    function handleClick() {
+        cep.length !== 8 ? setErroCep('CEP inválido') : setErroCep('')
+    }
+
     return (
-        <div>
-            <h1>Buscar Cep</h1>
-            <form className='formulario'>
-                <input placeholder='CEP' value={cep} onChange={handleChangeCep}/>
+        <div className='flex justify-center flex-col font-sans'>
+            <h1 className='flex justify-center font-extrabold text-[2rem] p-[5px]'>Buscar Cep</h1>
+            <form className='flex justify-center flex-col mt-5'>
+
+                <input placeholder='CEP' className='border-gray-300 border-2 w-[450px] p-[5px]' maxLength={8} value={cep} onChange={handleChangeCep} onClick={handleClickCep} onBlur={handleClick}/>
+                
                 { erroCep && (
-                    <p>{erroCep}</p>
+                    <div>
+                        <p className='text-red-500 mt-[7px]'>{erroCep}</p>
+                    </div>
                 ) 
                 }
-                <input placeholder='Rua' value={rua}/>
-                <input />
-                <input placeholder='Bairro' value={bairro}/>
-                <input placeholder='Estado' value={estado}/>
-                <input placeholder='Cidade' value={cidade}/>
+
+                <input className='border-gray-300 border-2 w-[450px] mt-4 p-[5px]' placeholder='Rua' value={rua} />
+                <input placeholder='Número' className='border-gray-300 border-2 w-[450px] mt-4 p-[5px]' />
+                <input placeholder='Bairro' className='border-gray-300 border-2 w-[450px] mt-4 p-[5px]' value={bairro} />
+                <input placeholder='Estado' className='border-gray-300 border-2 w-[450px] mt-4 p-[5px]' value={estado} />
+                <input placeholder='Cidade' className='border-gray-300 border-2 w-[450px] mt-4 p-[5px]' value={cidade} />
             </form>
         </div>
     )
